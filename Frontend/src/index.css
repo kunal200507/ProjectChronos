@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 215 25% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 17%;
+
+    --primary: 200 98% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 215 25% 17%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 215 25% 17%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 200 98% 39%;
+
+    --radius: 0.375rem;
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 200 98% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 200 98% 39%;
+
+    /* Landing page dark theme */
+    --landing-bg: 222 47% 6%;
+    --landing-surface: 222 47% 11%;
+    --landing-glow: 200 98% 39%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Orbitron', sans-serif;
+  }
+  .text-gradient-brand {
+    background: linear-gradient(135deg, hsl(190 100% 60%), hsl(200 98% 39%), hsl(220 90% 55%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .bg-landing {
+    background: radial-gradient(ellipse at 20% 50%, hsl(200 98% 39% / 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, hsl(220 90% 55% / 0.06) 0%, transparent 50%),
+                hsl(var(--landing-bg));
+  }
+  .glass-card {
+    background: hsl(222 47% 11% / 0.6);
+    border: 1px solid hsl(200 98% 39% / 0.15);
+    backdrop-filter: blur(12px);
+  }
+  .glow-border {
+    box-shadow: 0 0 20px hsl(200 98% 39% / 0.15), inset 0 0 20px hsl(200 98% 39% / 0.05);
+  }
+  .risk-high {
+    @apply bg-destructive text-destructive-foreground;
+  }
+  .risk-medium {
+    background: hsl(var(--warning));
+    color: hsl(var(--warning-foreground));
+  }
+  .risk-low {
+    background: hsl(var(--success));
+    color: hsl(var(--success-foreground));
+  }
+}
