@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RiskTier {
+  GREEN
+  YELLOW
+  RED
+}
+
+enum CriticalEventType {
+  CARDIAC_ARREST
+  SEPTIC_SHOCK
+  HEMODYNAMIC_COLLAPSE
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  FALSE_POSITIVE
+}
+
+enum UserRole {
+  DOCTOR
+  NURSE
+  ADMIN
+  DATA_ENGINEER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+model Hospital {
+  id        String   @id @default(cuid())
+  name      String
+  fhirBase  String?
+  createdAt DateTime @default(now())
+  wards     Ward[]
+  users     User[]
+  patients  Patient[]
+}
+
+model Ward {
+  id         String   @id @default(cuid())
+  name       String
+  type       String
+  hospitalId String
+  createdAt  DateTime @default(now())
+  hospital   Hospital @relation(fields: [hospitalId], references: [id])
+  beds       Bed[]
+}
+
+model Bed {
+  id         String      @id @default(cuid())
+  label      String
+  wardId     String
+  createdAt  DateTime    @default(now())
+  ward       Ward        @relation(fields: [wardId], references: [id])
+  admissions Admission[]
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String
+  email              String    @unique
+  passwordHash       String
+  role               UserRole
+  hospitalId         String
+  createdAt          DateTime  @default(now())
+  hospital           Hospital  @relation(fields: [hospitalId], references: [id])
+  acknowledgedAlerts Alert[]
+}
+
+model Patient {
+  id         String      @id @default(cuid())
+  mrn        String      @unique
+  fhirId     String?     @unique
+  firstName  String
+  lastName   String
+  dob        DateTime
+  gender     Gender
+  hospitalId String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  hospital   Hospital    @relation(fields: [hospitalId], references: [id])
+  admissions Admission[]
+}
+
+model Admission {
+  id           String         @id @default(cuid())
+  patientId    String
+  bedId        String
+  admittedAt   DateTime       @default(now())
+  dischargedAt DateTime?
+  diagnosis    String?
+  createdAt    DateTime       @default(now())
+  patient      Patient        @relation(fields: [patientId], references: [id])
+  bed          Bed            @relation(fields: [bedId], references: [id])
+  vitals       VitalReading[]
+  predictions  Prediction[]
+  alerts       Alert[]
+}
+
+model VitalReading {
+  id              String    @id @default(cuid())
+  admissionId     String
+  recordedAt      DateTime  @default(now())
+  heartRate       Float?
+  map             Float?
+  spo2            Float?
+  temperature     Float?
+  lactate         Float?
+  respiratoryRate Float?
+  sbp             Float?
+  dbp             Float?
+  fio2            Float?
+  gcs             Int?
+  source          String?
+  fhirObsId       String?
+  admission       Admission @relation(fields: [admissionId], references: [id])
+
+  @@index([admissionId, recordedAt])
+}
+
+model Prediction {
+  id               String            @id @default(cuid())
+  admissionId      String
+  modelVersion     String
+  predictedAt      DateTime          @default(now())
+  eventType        CriticalEventType
+  horizonHours     Int
+  crashProbability Float
+  riskTier         RiskTier
+  confidence       Float?
+  shapValues       ShapValue[]
+  admission        Admission         @relation(fields: [admissionId], references: [id])
+  alert            Alert?
+
+  @@index([admissionId, predictedAt])
+}
+
+model ShapValue {
+  id           String     @id @default(cuid())
+  predictionId String
+  feature      String
+  shapScore    Float
+  featureValue Float?
+  prediction   Prediction @relation(fields: [predictionId], references: [id])
+
+  @@index([predictionId])
+}
+
+model Alert {
+  id             String      @id @default(cuid())
+  admissionId    String
+  predictionId   String      @unique
+  triggeredAt    DateTime    @default(now())
+  status         AlertStatus @default(ACTIVE)
+  riskTier       RiskTier
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  notes          String?
+  admission      Admission   @relation(fields: [admissionId], references: [id])
+  prediction     Prediction  @relation(fields: [predictionId], references: [id])
+  acknowledger   User?       @relation(fields: [acknowledgedBy], references: [id])
+
+  @@index([admissionId, triggeredAt])
+  @@index([status])
+}
+
+model ModelVersion {
+  id           String            @id @default(cuid())
+  name         String
+  version      String
+  eventType    CriticalEventType
+  auroc        Float?
+  f1Score      Float?
+  trainedOn    String?
+  trainedAt    DateTime
+  isActive     Boolean           @default(false)
+  artifactPath String?
+  createdAt    DateTime          @default(now())
+
+  @@unique([name, version])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
